@@ -205,4 +205,4 @@ def pow_church(m, n):
     >>> church_to_int(pow_church(three, two))
     9
     """
-    return n(m)
+    return n(m)#two(three)(f)->three(three(f))->lambda x: f(f(f(x)))
