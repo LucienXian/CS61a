@@ -1,0 +1,8 @@
+'make_joint-last_attempt', (3072, 74)
+'make_joint-correct', (3584, 70)
+'make_withdraw-last_attempt', (1536, 74)
+'make_joint-attempts', (2560, 71)
+'with_totals-attempts', (0, 71)
+'make_withdraw-correct', (2048, 70)
+'with_totals-last_attempt', (512, 74)
+'make_withdraw-attempts', (1024, 71)
