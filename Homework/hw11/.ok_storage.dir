@@ -1,0 +1,6 @@
+'in_order-correct', (1024, 70)
+'in_order-attempts', (0, 71)
+'in_order-last_attempt', (512, 74)
+'permutations-correct', (2560, 70)
+'permutations-last_attempt', (2048, 74)
+'permutations-attempts', (1536, 71)
