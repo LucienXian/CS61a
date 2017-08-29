@@ -52,7 +52,7 @@ def eval_all(expressions, env):
     if expressions is nil:
         return None
     elif expressions.second is nil:
-        return scheme_eval(expressions.first, env)
+        return scheme_eval(expressions.first, env, True)
     else:
         scheme_eval(expressions.first, env)
         return eval_all(expressions.second, env)
@@ -256,20 +256,38 @@ def do_if_form(expressions, env):
     """Evaluate an if form."""
     check_form(expressions, 2, 3)
     if scheme_truep(scheme_eval(expressions.first, env)):
-        return scheme_eval(expressions.second.first, env)
+        return scheme_eval(expressions.second.first, env, True)
     elif len(expressions) == 3:
-        return scheme_eval(expressions.second.second.first, env)
+        return scheme_eval(expressions.second.second.first, env, True)
 
 def do_and_form(expressions, env):
     """Evaluate a short-circuited and form."""
     # BEGIN PROBLEM 13
-    "*** REPLACE THIS LINE ***"
+    result = True
+    while expressions is not nil:
+        if not expressions.second:
+            result = scheme_eval(expressions.first, env, True)
+        else:
+            result = scheme_eval(expressions.first, env)
+        if scheme_falsep(result):
+            return False
+        expressions = expressions.second
+    return result
     # END PROBLEM 13
 
 def do_or_form(expressions, env):
     """Evaluate a short-circuited or form."""
     # BEGIN PROBLEM 13
-    "*** REPLACE THIS LINE ***"
+    result = False
+    while expressions is not nil:
+        if not expressions.second:
+            result = scheme_eval(expressions.first, env, True)
+        else:
+            result = scheme_eval(expressions.first, env)
+        if scheme_truep(result):
+            return result
+        expressions = expressions.second
+    return result
     # END PROBLEM 13
 
 def do_cond_form(expressions, env):
@@ -285,7 +303,9 @@ def do_cond_form(expressions, env):
             test = scheme_eval(clause.first, env)
         if scheme_truep(test):
             # BEGIN PROBLEM 14
-            "*** REPLACE THIS LINE ***"
+            if clause.second is nil:
+                return test
+            return eval_all(clause.second, env)
             # END PROBLEM 14
         expressions = expressions.second
 
@@ -303,7 +323,15 @@ def make_let_frame(bindings, env):
     if not scheme_listp(bindings):
         raise SchemeError('bad bindings list in let form')
     # BEGIN PROBLEM 15
-    "*** REPLACE THIS LINE ***"
+    para, val= nil, nil
+    while bindings is not nil:
+        binding = bindings.first
+        check_form(binding, 2, 2)
+        para = Pair(binding.first, para)
+        val = Pair(scheme_eval(binding.second.first, env), val)
+        bindings = bindings.second
+    check_formals(para)
+    return env.make_child_frame(para, val)
     # END PROBLEM 15
 
 SPECIAL_FORMS = {
@@ -382,7 +410,12 @@ class MuProcedure(UserDefinedProcedure):
         self.body = body
 
     # BEGIN PROBLEM 16
-    "*** REPLACE THIS LINE ***"
+    def make_call_frame(self, args, env):
+        return env.make_child_frame(self.formals, args)
+    """Make a frame that binds the formal parameters to ARGS, a Scheme list
+    of values, for a lexically-scoped call evaluated in environment ENV."""
+    # BEGIN PROBLEM 12
+        
     # END PROBLEM 16
 
     def __str__(self):
@@ -398,7 +431,8 @@ def do_mu_form(expressions, env):
     formals = expressions.first
     check_formals(formals)
     # BEGIN PROBLEM 16
-    "*** REPLACE THIS LINE ***"
+    body = expressions.second
+    return MuProcedure(formals, body)
     # END PROBLEM 16
 
 SPECIAL_FORMS['mu'] = do_mu_form
@@ -453,7 +487,7 @@ def complete_eval(val):
     """If VAL is an Thunk, returns the result of evaluating its expression
     part. Otherwise, simply returns VAL."""
     if isinstance(val, Thunk):
-        return scheme_eval(val.expr, val.env)
+        return scheme_eval(val.expr, val.env, True)
     else:
         return val
 
@@ -468,12 +502,13 @@ def scheme_optimized_eval(expr, env, tail=False):
 
     if tail:
         # BEGIN Extra Credit
-        "*** REPLACE THIS LINE ***"
+        return Thunk(expr, env)
         # END Extra Credit
     else:
         result = Thunk(expr, env)
 
     while isinstance(result, Thunk):
+        # print("IS INSTANCE!?!?!")
         expr, env = result.expr, result.env
         # All non-atomic expressions are lists (combinations)
         if not scheme_listp(expr):
@@ -483,14 +518,17 @@ def scheme_optimized_eval(expr, env, tail=False):
             result = SPECIAL_FORMS[first](rest, env)
         else:
             # BEGIN Extra Credit
-            "*** REPLACE THIS LINE ***"
+            proc = scheme_eval(first, env) # get the operator
+            check_procedure(proc) # test if it's legit
+            args = rest.map(lambda expr: scheme_eval(expr, env)) # evaluate all the
+            result = scheme_apply(proc, args, env)
             # END Extra Credit
     return result
 
 ################################################################
 # Uncomment the following line to apply tail call optimization #
 ################################################################
-# scheme_eval = scheme_optimized_eval
+scheme_eval = scheme_optimized_eval
 
 
 ################
