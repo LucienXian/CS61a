@@ -1,0 +1,32 @@
+(define (find s predicate)
+  (cond
+  	((null? s) #f)
+  	((predicate (car s)) (car s))
+  	(else (find (cdr-stream s) predicate))
+  )
+)
+
+(define (scale-stream s k)
+  (cons-stream (* k (car s)) (scale-stream (cdr-stream s) k))
+)
+
+(define (has-cycle s)
+  (define (tracker prev las)
+  	(cond
+  		((null? las) #f)
+  		((eq? prev las) #t)
+  		(else (tracker prev (cdr-stream las)))
+  	)
+  )
+  (tracker s (cdr-stream s))
+)
+(define (has-cycle-constant s)
+   (define (tracker prev las)
+  	(cond
+  		((null? las) #f)
+  		((eq? prev las) #t)
+  		(else (tracker prev (cdr-stream las)))
+  	)
+  )
+  (tracker s (cdr-stream s))
+)
